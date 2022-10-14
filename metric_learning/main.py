@@ -40,7 +40,7 @@ def handle_arguments():
 
     args = parser.parse_args()
 
-    if args.experiment_name == 'None':
+    if args.experiment_name == None:
         args.experiment_name = uuid.uuid4()
 
     return args
