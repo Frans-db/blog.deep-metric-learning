@@ -16,11 +16,12 @@ First I will cover the more basic deep metric learning technique, called contras
 
 ## Contrastive Learning
 
+{% cite ruby %}
+
+### Contrastive Loss
 $$
 L(W, Y) = (1 - Y) \frac{1}{2}(D_W)^2 + (Y) \frac{1}{2}(\max(0, m - D_W))^2
 $$
-
-### Contrastive Loss
 
 ### Contrastive Miner
 
