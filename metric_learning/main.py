@@ -136,7 +136,7 @@ def create_gif(image_names: list[str], results_directory: str) -> None:
     images = []
     for filename in image_names:
         images.append(imageio.imread(filename))
-    imageio.mimsave(f'./{results_directory}/movie.gif'), images
+    imageio.mimsave(f'./{results_directory}/movie.gif', images)
 
 
 if __name__ == '__main__':
