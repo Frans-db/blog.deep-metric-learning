@@ -7,10 +7,13 @@ import argparse
 from distances import EuclideanDistance
 from losses import ContrastiveLoss
 from miners import ContrastiveMiner
+from networks import LecunConvolutionalNetwork
 
 
 def handle_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--dimensionality', type=int, default=2,
+                    help='Manifold dimensionality to map the data to')
     parser.add_argument('--epochs', type=int, default=100,
                         help='Number of training epochs')
     parser.add_argument('--batch_size', type=int,
@@ -25,7 +28,6 @@ def handle_arguments():
 
 def load_data(args):
     transform = transforms.ToTensor()
-    batch_size = 4
 
     trainset = torchvision.datasets.MNIST(root='./data', train=True,
                                           download=True, transform=transform)
@@ -46,7 +48,6 @@ def main():
 
     data = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     labels = torch.tensor([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-    print(ContrastiveMiner(dimensionality=1)(data, labels))
 
     # basic contrastive learning setup:
     # - argument parsing
@@ -57,6 +58,10 @@ def main():
     # - loss graph
     # - result graph
     # later: gif maker
+
+    miner = ContrastiveMiner(dimensionality=args.dimensionality)
+    loss = ContrastiveLoss(distance=EuclideanDistance())
+    network = LecunConvolutionalNetwork(dimensionality=args.dimensionality)
 
     return
 

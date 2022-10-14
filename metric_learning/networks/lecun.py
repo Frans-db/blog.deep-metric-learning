@@ -7,12 +7,12 @@ import torch
 
 
 class LecunConvolutionalNetwork(nn.Module):
-    def __init__(self) -> None:
+    def __init__(self, dimensionality: int = 2) -> None:
         super().__init__()
         self.conv1 = nn.Conv2d(1, 15, 6)
         self.pool1 = nn.AvgPool2d(3)
         self.conv2 = nn.Conv2d(15, 30, 9)
-        self.fc1 = nn.Linear(30, 2)
+        self.fc1 = nn.Linear(30, dimensionality)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.conv1(x))

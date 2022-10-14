@@ -1,0 +1,1 @@
+from .lecun import LecunConvolutionalNetwork
