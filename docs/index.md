@@ -1,3 +1,8 @@
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+
 # Deep Metric Learning
 
 ## Introduction
@@ -10,6 +15,10 @@ Throughout each section I'll show the code used to implement each part needed to
 First I will cover the more basic deep metric learning technique, called contrastive learning. After that I'll dive into triplet learning and show some of the different results.
 
 ## Contrastive Learning
+
+$$
+L(W, Y) = (1 - Y) \frac{1}{2}(D_W)^2 + (Y) \frac{1}{2}(\max(0, m - D_W))^2
+$$
 
 ### Contrastive Loss
 
