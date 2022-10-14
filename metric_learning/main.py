@@ -2,30 +2,61 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
+import argparse
 
 from distances import EuclideanDistance
 from losses import ContrastiveLoss
 from miners import ContrastiveMiner
 
 
-def main():
-    transform = transforms.ToTensor()
+def handle_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='Number of training epochs')
+    parser.add_argument('--batch_size', type=int,
+                        default=16, help='Dataloader batch size')
+    parser.add_argument('--num_workers', type=int, default=4,
+                        help='Dataloader number of workers')
 
+    args = parser.parse_args()
+
+    return args
+
+
+def load_data(args):
+    transform = transforms.ToTensor()
     batch_size = 4
 
     trainset = torchvision.datasets.MNIST(root='./data', train=True,
                                           download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                              shuffle=True, num_workers=2)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
+                                              shuffle=True, num_workers=args.num_workers)
 
     testset = torchvision.datasets.MNIST(root='./data', train=False,
                                          download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                             shuffle=False, num_workers=2)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
+                                             shuffle=False, num_workers=args.num_workers)
+
+    return trainloader, testloader
+
+
+def main():
+    args = handle_arguments()
+    trainloader, testloader = load_data(args)
 
     data = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     labels = torch.tensor([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
     print(ContrastiveMiner(dimensionality=1)(data, labels))
+
+    # basic contrastive learning setup:
+    # - argument parsing
+    # - data loading
+    # - train loop
+    # - (inner) test loop
+    # ^ try to combine these 2?
+    # - loss graph
+    # - result graph
+    # later: gif maker
 
     return
 
