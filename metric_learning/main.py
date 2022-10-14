@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
+import torch.optim as optim
 import argparse
 
 from distances import EuclideanDistance
@@ -13,7 +14,7 @@ from networks import LecunConvolutionalNetwork
 def handle_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dimensionality', type=int, default=2,
-                    help='Manifold dimensionality to map the data to')
+                        help='Manifold dimensionality to map the data to')
     parser.add_argument('--epochs', type=int, default=100,
                         help='Number of training epochs')
     parser.add_argument('--batch_size', type=int,
@@ -27,7 +28,7 @@ def handle_arguments():
 
 
 def load_data(args):
-    transform = transforms.ToTensor()
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Pad(2)])
 
     trainset = torchvision.datasets.MNIST(root='./data', train=True,
                                           download=True, transform=transform)
@@ -60,42 +61,24 @@ def main():
     # later: gif maker
 
     miner = ContrastiveMiner(dimensionality=args.dimensionality)
-    loss = ContrastiveLoss(distance=EuclideanDistance())
+    criterion = ContrastiveLoss(distance=EuclideanDistance())
     network = LecunConvolutionalNetwork(dimensionality=args.dimensionality)
 
+    optimizer = optim.Adam(network.parameters())
+
+    for epoch in range(args.epochs):
+        epoch_loss = 0
+        for (inputs, labels) in trainloader:
+            optimizer.zero_grad()
+            outputs = network(inputs)
+            outputs, labels = miner(outputs, labels)
+            loss = criterion(outputs[0], outputs[1], labels[0], labels[1])
+            loss.backward()
+            optimizer.step()
+            epoch_loss += loss.item()
+        print(f'[{epoch:2}] loss: {epoch_loss:.2f}')
     return
 
-    # get some random training images
-    dataiter = iter(trainloader)
-    images, labels = dataiter.next()
-
-    # show images
-    imshow(torchvision.utils.make_grid(images))
-    # print labels
-    print(' '.join(f'{classes[labels[j]]:5s}' for j in range(batch_size)))
-
-    class Net(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.conv1 = nn.Conv2d(3, 6, 5)
-            self.pool = nn.MaxPool2d(2, 2)
-            self.conv2 = nn.Conv2d(6, 16, 5)
-            self.fc1 = nn.Linear(16 * 5 * 5, 120)
-            self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, 10)
-
-        def forward(self, x):
-            x = self.pool(F.relu(self.conv1(x)))
-            x = self.pool(F.relu(self.conv2(x)))
-            x = torch.flatten(x, 1)  # flatten all dimensions except batch
-            x = F.relu(self.fc1(x))
-            x = F.relu(self.fc2(x))
-            x = self.fc3(x)
-            return x
-
-    net = Net()
-
-    import torch.optim as optim
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
