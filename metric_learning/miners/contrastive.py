@@ -10,10 +10,8 @@ class ContrastiveMiner(nn.Module):
 
     def forward(self, embeddings: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Transform data from
-        # 0 1 2 3 4 5 6 7 8 9
-        # to
-        # [0, 1, 2, 3, 4], [5, 6, 7, 8, 9]
-        embeddings = embeddings.reshape(
-            2, embeddings.shape[0] // 2, self.dimensionality)
+        # 0 1 2 3 4 5 6 7 8 9 to [0, 1, 2, 3, 4], [5, 6, 7, 8, 9]
+        # to create pairs of data
+        embeddings = embeddings.reshape(2, embeddings.shape[0] // 2, self.dimensionality)
         labels = labels.reshape(2, labels.shape[0] // 2)
         return embeddings, labels

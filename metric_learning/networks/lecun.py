@@ -1,12 +1,15 @@
-# Network from Dimensionality Reduction by Learning an Invariant Mapping
-# http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
 
 class LecunConvolutionalNetwork(nn.Module):
+    """
+    Convolutional Network as described in
+    Dimensionality Reduction by Learning an Invariant Mapping
+    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    """
+
     def __init__(self, dimensionality: int = 2) -> None:
         super().__init__()
         self.conv1 = nn.Conv2d(1, 15, 6)

@@ -36,6 +36,11 @@ $$
 
 ```python
 class ContrastiveLoss(nn.Module):
+    """
+    Contrastive Loss as described in
+    Dimensionality Reduction by Learning an Invariant Mapping
+    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    """
     def __init__(self, distance: nn.Module, margin: float = 1.0, positive_weight: float = 0.5) -> None:
         super().__init__()
         self.distance = distance
@@ -43,26 +48,101 @@ class ContrastiveLoss(nn.Module):
         self.positive_weight = positive_weight
 
     def forward(self, x: torch.Tensor, y: torch.Tensor, x_labels: torch.Tensor, y_labels: torch.Tensor) -> torch.Tensor:
+        # compare x labels to y labels to get simmilar and dissimilar pairs
         equal: torch.Tensor = x_labels == y_labels
+        # calculate distances between all pairs
         distances: torch.Tensor = self.distance(x, y)
 
-        # Calculate the positive loss $(D_W)^2$
+        # Calculate the positive loss d^2
         positive_loss = equal * self.positive_weight * (distances).square()
-        # Calculate the negative loss $max(0, m - D_W)^2$
+        # Calculate the negative loss max(0, m - d)^2
         negative_loss = (~equal) * (1 - self.positive_weight) * \
             (self.margin - distances).clamp(0).square()
 
         return (positive_loss + negative_loss).sum()
-
 ```
 
+```python
+class EuclideanDistance(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        # sqrt( sum_i (x_i - y_i)^2)
+        return (x - y).square().sum(dim=-1).sqrt()
+```
+
+
 ### Contrastive Miner
+
+```python
+class ContrastiveMiner(nn.Module):
+    def __init__(self, dimensionality: int = 2) -> None:
+        super().__init__()
+        self.dimensionality = dimensionality
+
+    def forward(self, embeddings: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Transform data from
+        # 0 1 2 3 4 5 6 7 8 9 to [0, 1, 2, 3, 4], [5, 6, 7, 8, 9]
+        # to create pairs of data
+        embeddings = embeddings.reshape(2, embeddings.shape[0] // 2, self.dimensionality)
+        labels = labels.reshape(2, labels.shape[0] // 2)
+        return embeddings, labels
+```
 
 ## Triplet Learning
 
 ### Triplet Loss
 
+```python
+class TripletLoss(nn.Module):
+    """
+    Triplet Loss as described in
+    FaceNet: A Unified Embedding for Face Recognition and Clustering
+    https://arxiv.org/abs/1503.03832
+    """
+    def __init__(self, distance: nn.Module, margin: float = 1.0) -> None:
+        super().__init__()
+        self.distance = distance
+        self.margin = margin
+
+    def forward(self, anchors: torch.Tensor, positives: torch.Tensor, negatives: torch.Tensor) -> torch.Tensor:
+        # calculate distances of anchor positive pairs
+        positive_distances = self.distance(anchors, positives).square()
+        # calculate distances of anchor negative pairs
+        negative_distances = self.distance(anchors, negatives).square()
+        # loss = (d_pos - d_neg + margin)
+        return (positive_distances - negative_distances + self.margin).clamp(0).sum()
+```
+
 ### Triplet Miner
+
+## Network
+
+```python
+class LecunConvolutionalNetwork(nn.Module):
+    """
+    Convolutional Network as described in
+    Dimensionality Reduction by Learning an Invariant Mapping
+    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    """
+    def __init__(self, dimensionality: int = 2) -> None:
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 15, 6)
+        self.pool1 = nn.AvgPool2d(3)
+        self.conv2 = nn.Conv2d(15, 30, 9)
+        self.fc1 = nn.Linear(30, dimensionality)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = F.relu(self.conv1(x))
+        x = self.pool1(x)
+        x = F.relu(self.conv2(x))
+        x = x.reshape(x.shape[0], -1)
+        x = self.fc1(x)
+        return x
+```
+
+## Results
 
 ## Citations
 1. R. Hadsell, S. Chopra, and Y. LeCun. Dimensionality reduction by learning an invariant map-

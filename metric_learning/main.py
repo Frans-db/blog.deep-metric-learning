@@ -80,6 +80,9 @@ def create_directores(results_root: str, experiment_name: str):
 
 
 def select_samples(dataset: torch.Tensor, labels: torch.Tensor) -> Dataset:
+    """
+    Select a subset of all data
+    """
     idx = torch.zeros_like(dataset.targets)
     for label in labels:
         idx = torch.logical_or(dataset.targets == label, idx)
@@ -96,13 +99,14 @@ def main() -> None:
 
     trainloader, testloader = load_data(args)
 
+    # Setup miner and criterion
     if args.mode == 'contrastive':
         miner = ContrastiveMiner(dimensionality=args.dimensionality)
         criterion = ContrastiveLoss(distance=EuclideanDistance())
     elif args.mode == 'triplet':
         miner = TripletMiner()
         criterion = TripletLoss(distance=EuclideanDistance())
-
+    # Setup network and optimizer
     network = LecunConvolutionalNetwork(
         dimensionality=args.dimensionality).to(device)
     optimizer = optim.Adam(network.parameters())
@@ -113,6 +117,7 @@ def main() -> None:
         print(f'Epoch [{epoch:2}]')
         for (inputs, labels) in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
+            # Create an image of the current test embedding
             if iteration % args.test_every == 0:
                 print(f'Iteration [{iteration:4}]')
                 image_path = f'./{results_directory}/{epoch}_{iteration}.png'
@@ -120,7 +125,7 @@ def main() -> None:
                     network, testloader, args.dimensionality)
                 scatter(test_results, test_labels, image_path, args.axis_limit)
                 image_paths.append(image_path)
-
+            # Optimize network
             optimizer.zero_grad()
             outputs = network(inputs)
             outputs, labels = miner(outputs, labels)
@@ -134,6 +139,7 @@ def main() -> None:
             optimizer.step()
 
             iteration += 1
+    # Create gif of all the test images
     create_gif(image_paths, results_directory, args.repeat_frames)
 
 
@@ -154,6 +160,7 @@ def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str, axis_l
     for label in torch.unique(labels):
         idx = labels == label
         embeddings = results[idx].transpose(0, 1)
+        # Set x and y lim so result gif doesn't bounce around
         plt.xlim(-axis_limit, axis_limit)
         plt.ylim(-axis_limit, axis_limit)
         plt.scatter(embeddings[0], embeddings[1], label=label.item())
