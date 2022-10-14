@@ -7,6 +7,9 @@ from torch.utils.data import DataLoader
 import argparse
 import matplotlib.pyplot as plt
 from typing import Tuple
+import imageio
+import uuid
+import os
 
 from distances import EuclideanDistance
 from losses import ContrastiveLoss
@@ -17,8 +20,13 @@ from networks import LecunConvolutionalNetwork
 def get_device() -> torch.device:
     return torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+
 def handle_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--results_root', type=str, default='results',
+                    help='Name of the directory to store experiments in')
+    parser.add_argument('--experiment_name', type=str, default=None,
+                        help='Name of the current experiment. Used to store results')
     parser.add_argument('--dimensionality', type=int, default=2,
                         help='Manifold dimensionality to map the data to')
     parser.add_argument('--epochs', type=int, default=100,
@@ -31,6 +39,9 @@ def handle_arguments():
                         help='Dataloader number of workers')
 
     args = parser.parse_args()
+
+    if args.experiment_name == 'None':
+        args.experiment_name = uuid.uuid4()
 
     return args
 
@@ -51,25 +62,39 @@ def load_data(args):
     return trainloader, testloader
 
 
+def create_directores(results_root: str, experiment_name: str):
+    if not os.path.isdir(f'./{results_root}'):
+        os.mkdir(f'./{results_root}')
+    if not os.path.isdir(f'./{results_root}/{experiment_name}'):
+        os.mkdir(f'./{results_root}/{experiment_name}')
+
 def main() -> None:
     device = get_device()
     args = handle_arguments()
+    create_directores(args.results_root, args.experiment_name)
+    results_directory = f'{args.results_root}/{args.experiment_name}'
+
     trainloader, testloader = load_data(args)
 
     miner = ContrastiveMiner(dimensionality=args.dimensionality)
     criterion = ContrastiveLoss(distance=EuclideanDistance())
-    network = LecunConvolutionalNetwork(dimensionality=args.dimensionality).to(device)
+    network = LecunConvolutionalNetwork(
+        dimensionality=args.dimensionality).to(device)
     optimizer = optim.Adam(network.parameters())
 
     iteration = 0
+    image_paths = []
     for epoch in range(args.epochs):
         print(f'Epoch [{epoch:2}]')
         for (inputs, labels) in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
             if iteration % args.test_every == 0:
-                print(f'Testing Iteration [{iteration:4}]')
-                test_results, test_labels = test(network, testloader, args.dimensionality)
-                scatter(test_results, test_labels, f'{epoch}_{iteration}')
+                print(f'teration [{iteration:4}]')
+                image_path = f'./{results_directory}/{epoch}_{iteration}.png'
+                test_results, test_labels = test(
+                    network, testloader, args.dimensionality)
+                scatter(test_results, test_labels, image_path)
+                image_paths.append(image_path)
 
             optimizer.zero_grad()
             outputs = network(inputs)
@@ -82,6 +107,7 @@ def main() -> None:
 
     results, labels = test(network, testloader, args.dimensionality)
     scatter(results, labels)
+    create_gif(image_paths, results_directory)
 
 
 def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -97,13 +123,20 @@ def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tup
     return all_results, all_labels
 
 
-def scatter(results: torch.Tensor, labels: torch.Tensor, name: str) -> None:
+def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str) -> None:
     for label in torch.unique(labels):
         idx = labels == label
         embeddings = results[idx].transpose(0, 1)
         plt.scatter(embeddings[0], embeddings[1], label=label.item())
-    plt.savefig(f'./results/{name}.png')
+    plt.savefig(image_path)
     plt.clf()
+
+
+def create_gif(image_names: list[str], results_directory: str) -> None:
+    images = []
+    for filename in image_names:
+        images.append(imageio.imread(filename))
+    imageio.mimsave(f'./{results_directory}/movie.gif'), images
 
 
 if __name__ == '__main__':
