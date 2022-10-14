@@ -24,7 +24,7 @@ def get_device() -> torch.device:
 def handle_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--results_root', type=str, default='results',
-                    help='Name of the directory to store experiments in')
+                        help='Name of the directory to store experiments in')
     parser.add_argument('--experiment_name', type=str, default=None,
                         help='Name of the current experiment. Used to store results')
     parser.add_argument('--dimensionality', type=int, default=2,
@@ -68,6 +68,7 @@ def create_directores(results_root: str, experiment_name: str):
     if not os.path.isdir(f'./{results_root}/{experiment_name}'):
         os.mkdir(f'./{results_root}/{experiment_name}')
 
+
 def main() -> None:
     device = get_device()
     args = handle_arguments()
@@ -89,7 +90,7 @@ def main() -> None:
         for (inputs, labels) in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
             if iteration % args.test_every == 0:
-                print(f'teration [{iteration:4}]')
+                print(f'Iteration [{iteration:4}]')
                 image_path = f'./{results_directory}/{epoch}_{iteration}.png'
                 test_results, test_labels = test(
                     network, testloader, args.dimensionality)
@@ -106,7 +107,6 @@ def main() -> None:
             iteration += 1
 
     results, labels = test(network, testloader, args.dimensionality)
-    scatter(results, labels)
     create_gif(image_paths, results_directory)
 
 
