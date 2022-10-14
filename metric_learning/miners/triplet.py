@@ -4,6 +4,9 @@ from typing import Tuple
 
 
 class TripletMiner(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
     def forward(self, embeddings: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         i = 0
         anchors = []

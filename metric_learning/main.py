@@ -12,8 +12,8 @@ import uuid
 import os
 
 from distances import EuclideanDistance
-from losses import ContrastiveLoss
-from miners import ContrastiveMiner
+from losses import ContrastiveLoss, TripletLoss
+from miners import ContrastiveMiner, TripletMiner
 from networks import LecunConvolutionalNetwork
 
 
@@ -27,6 +27,8 @@ def handle_arguments():
                         help='Name of the directory to store experiments in')
     parser.add_argument('--experiment_name', type=str, default=None,
                         help='Name of the current experiment. Used to store results')
+    parser.add_argument('--mode', type=str, default='contrastive',
+                        help='Mode to use. contrastive (default) or triplet')
     parser.add_argument('--labels', type=int, nargs='+',
                         default=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], help='Labels to use for the experiment')
     parser.add_argument('--dimensionality', type=int, default=2,
@@ -41,7 +43,7 @@ def handle_arguments():
                         help='Set matplotlib axis to avoid the gif jumping around')
     parser.add_argument('--batch_size', type=int,
                         default=16, help='Dataloader batch size')
-    parser.add_argument('--num_workers', type=int, default=4,
+    parser.add_argument('--num_workers', type=int, default=0,
                         help='Dataloader number of workers')
 
     args = parser.parse_args()
@@ -94,8 +96,13 @@ def main() -> None:
 
     trainloader, testloader = load_data(args)
 
-    miner = ContrastiveMiner(dimensionality=args.dimensionality)
-    criterion = ContrastiveLoss(distance=EuclideanDistance())
+    if args.mode == 'contrastive':
+        miner = ContrastiveMiner(dimensionality=args.dimensionality)
+        criterion = ContrastiveLoss(distance=EuclideanDistance())
+    elif args.mode == 'triplet':
+        miner = TripletMiner()
+        criterion = TripletLoss(distance=EuclideanDistance())
+
     network = LecunConvolutionalNetwork(
         dimensionality=args.dimensionality).to(device)
     optimizer = optim.Adam(network.parameters())
@@ -117,13 +124,16 @@ def main() -> None:
             optimizer.zero_grad()
             outputs = network(inputs)
             outputs, labels = miner(outputs, labels)
-            loss = criterion(outputs[0], outputs[1], labels[0], labels[1])
+
+            if args.mode == 'contrastive':
+                loss = criterion(outputs[0], outputs[1], labels[0], labels[1])
+            elif args.mode == 'triplet':
+                loss = criterion(outputs[0], outputs[1], outputs[2])
+
             loss.backward()
             optimizer.step()
 
             iteration += 1
-
-    results, labels = test(network, testloader, args.dimensionality)
     create_gif(image_paths, results_directory, args.repeat_frames)
 
 

@@ -3,11 +3,10 @@ import torch
 
 
 class TripletLoss(nn.Module):
-    def __init__(self, distance: nn.Module, margin: float = 1.0, positive_weight: float = 0.5) -> None:
+    def __init__(self, distance: nn.Module, margin: float = 1.0) -> None:
         super().__init__()
         self.distance = distance
         self.margin = margin
-        self.positive_weight = positive_weight
 
     def forward(self, anchors: torch.Tensor, positives: torch.Tensor, negatives: torch.Tensor) -> torch.Tensor:
         positive_distances = self.distance(anchors, positives).square()
