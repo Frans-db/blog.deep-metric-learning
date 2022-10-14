@@ -6,6 +6,10 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
+from distances import EuclideanDistance
+from losses import ContrastiveLoss
+from miners import ContrastiveMiner
+
 
 def main():
     transform = transforms.ToTensor()
@@ -22,8 +26,9 @@ def main():
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                              shuffle=False, num_workers=2)
 
-    for i in testset:
-        print(i)
+    data = torch.tensor(  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    labels = torch.tensor([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+    print(ContrastiveMiner(dimensionality=1)(data, labels))
 
     return
 
