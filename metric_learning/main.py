@@ -3,7 +3,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import argparse
 import matplotlib.pyplot as plt
 from typing import Tuple
@@ -27,12 +27,18 @@ def handle_arguments():
                         help='Name of the directory to store experiments in')
     parser.add_argument('--experiment_name', type=str, default=None,
                         help='Name of the current experiment. Used to store results')
+    parser.add_argument('--labels', type=int, nargs='+',
+                        default=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], help='Labels to use for the experiment')
     parser.add_argument('--dimensionality', type=int, default=2,
                         help='Manifold dimensionality to map the data to')
     parser.add_argument('--epochs', type=int, default=100,
                         help='Number of training epochs')
     parser.add_argument('--test_every', type=int, default=100,
                         help='Number of training epochs')
+    parser.add_argument('--repeat_frames', type=int, default=3,
+                        help='Repeat a frame a number of times to slow down the GIF')
+    parser.add_argument('--axis_limit', type=float, default=3,
+                        help='Set matplotlib axis to avoid the gif jumping around')
     parser.add_argument('--batch_size', type=int,
                         default=16, help='Dataloader batch size')
     parser.add_argument('--num_workers', type=int, default=4,
@@ -51,11 +57,13 @@ def load_data(args):
 
     trainset = torchvision.datasets.MNIST(root='./data', train=True,
                                           download=True, transform=transform)
+    trainset = select_samples(trainset, args.labels)
     trainloader = DataLoader(trainset, batch_size=args.batch_size,
                              shuffle=True, num_workers=args.num_workers)
 
     testset = torchvision.datasets.MNIST(root='./data', train=False,
                                          download=True, transform=transform)
+    testset = select_samples(testset, args.labels)
     testloader = DataLoader(testset, batch_size=args.batch_size,
                             shuffle=False, num_workers=args.num_workers)
 
@@ -67,6 +75,15 @@ def create_directores(results_root: str, experiment_name: str):
         os.mkdir(f'./{results_root}')
     if not os.path.isdir(f'./{results_root}/{experiment_name}'):
         os.mkdir(f'./{results_root}/{experiment_name}')
+
+
+def select_samples(dataset: torch.Tensor, labels: torch.Tensor) -> Dataset:
+    idx = torch.zeros_like(dataset.targets)
+    for label in labels:
+        idx = torch.logical_or(dataset.targets == label, idx)
+    dataset.targets = dataset.targets[idx]
+    dataset.data = dataset.data[idx]
+    return dataset
 
 
 def main() -> None:
@@ -94,7 +111,7 @@ def main() -> None:
                 image_path = f'./{results_directory}/{epoch}_{iteration}.png'
                 test_results, test_labels = test(
                     network, testloader, args.dimensionality)
-                scatter(test_results, test_labels, image_path)
+                scatter(test_results, test_labels, image_path, args.axis_limit)
                 image_paths.append(image_path)
 
             optimizer.zero_grad()
@@ -107,7 +124,7 @@ def main() -> None:
             iteration += 1
 
     results, labels = test(network, testloader, args.dimensionality)
-    create_gif(image_paths, results_directory)
+    create_gif(image_paths, results_directory, args.repeat_frames)
 
 
 def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -123,19 +140,22 @@ def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tup
     return all_results, all_labels
 
 
-def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str) -> None:
+def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str, axis_limit: float) -> None:
     for label in torch.unique(labels):
         idx = labels == label
         embeddings = results[idx].transpose(0, 1)
+        plt.xlim(-axis_limit, axis_limit)
+        plt.ylim(-axis_limit, axis_limit)
         plt.scatter(embeddings[0], embeddings[1], label=label.item())
     plt.savefig(image_path)
     plt.clf()
 
 
-def create_gif(image_names: list[str], results_directory: str) -> None:
+def create_gif(image_names: list[str], results_directory: str, repeat_frames: int) -> None:
     images = []
     for filename in image_names:
-        images.append(imageio.imread(filename))
+        for _ in range(repeat_frames):
+            images.append(imageio.imread(filename))
     imageio.mimsave(f'./{results_directory}/movie.gif', images)
 
 
