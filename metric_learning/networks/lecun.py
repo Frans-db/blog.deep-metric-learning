@@ -1,0 +1,2 @@
+class LecunNetwork:
+    pass

@@ -1,0 +1,2 @@
+class EuclideanDistance:
+    pass
