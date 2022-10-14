@@ -92,9 +92,9 @@ def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tup
             inputs, labels = inputs.to(get_device()), labels.to(get_device())
             outputs = network(inputs)
 
-            all_results = torch.cat((all_results, outputs))
-            all_labels = torch.cat((all_labels, labels))
-    return all_results.detach().cpu(), all_labels.detach().cpu()
+            all_results = torch.cat((all_results, outputs.detach().cpu()))
+            all_labels = torch.cat((all_labels, labels.detach().cpu()))
+    return all_results, all_labels
 
 
 def scatter(results: torch.Tensor, labels: torch.Tensor, name: str) -> None:
