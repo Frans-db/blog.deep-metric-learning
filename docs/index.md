@@ -16,7 +16,7 @@ First I will cover the more basic deep metric learning technique, called contras
 
 ## Contrastive Learning
 
-{% cite ruby %}
+I'll be following [1] for Contrastive Learning
 
 ### Contrastive Loss
 $$
@@ -30,3 +30,10 @@ $$
 ### Triplet Loss
 
 ### Triplet Miner
+
+## Citations
+1. R. Hadsell, S. Chopra, and Y. LeCun. Dimensionality reduction by learning an invariant map-
+ping. In 2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition
+(CVPR’06), volume 2, pages 1735–1742, 2006.
+2. Florian Schroff, Dmitry Kalenichenko, and James Philbin. Facenet: A unified embedding for face
+recognition and clustering. CoRR, abs/1503.03832, 2015.
