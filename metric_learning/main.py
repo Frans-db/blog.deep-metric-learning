@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.optim as optim
 import argparse
+import matplotlib.pyplot as plt
 
 from distances import EuclideanDistance
 from losses import ContrastiveLoss
@@ -47,25 +48,13 @@ def main():
     args = handle_arguments()
     trainloader, testloader = load_data(args)
 
-    data = torch.tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    labels = torch.tensor([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-
-    # basic contrastive learning setup:
-    # - argument parsing
-    # - data loading
-    # - train loop
-    # - (inner) test loop
-    # ^ try to combine these 2?
-    # - loss graph
-    # - result graph
-    # later: gif maker
-
     miner = ContrastiveMiner(dimensionality=args.dimensionality)
     criterion = ContrastiveLoss(distance=EuclideanDistance())
     network = LecunConvolutionalNetwork(dimensionality=args.dimensionality)
 
     optimizer = optim.Adam(network.parameters())
 
+    losses = []
     for epoch in range(args.epochs):
         epoch_loss = 0
         for (inputs, labels) in trainloader:
@@ -77,85 +66,24 @@ def main():
             optimizer.step()
             epoch_loss += loss.item()
         print(f'[{epoch:2}] loss: {epoch_loss:.2f}')
-    return
+        losses.append(epoch_loss)
 
+    all_results = torch.zeros(0, args.dimensionality)
+    all_labels = torch.zeros(0)
+    for (inputs, labels) in testloader:
+        outputs = network(inputs)
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+        all_results = torch.cat((all_results, outputs))
+        all_labels = torch.cat((all_labels, labels))
+    all_results, all_labels = all_results.detach(), all_labels.detach()
+    for label in torch.unique(all_labels):
+        idx = all_labels == label
+        embeddings = all_results[idx].transpose(0, 1)
+        plt.scatter(embeddings[0], embeddings[1], label=label.item())
+    plt.show()
 
-    for epoch in range(2):  # loop over the dataset multiple times
-
-        running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            inputs, labels = data
-
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            # print statistics
-            running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-                running_loss = 0.0
-
-    print('Finished Training')
-
-    dataiter = iter(testloader)
-    images, labels = dataiter.next()
-
-    # print images
-    imshow(torchvision.utils.make_grid(images))
-    print('GroundTruth: ', ' '.join(
-        f'{classes[labels[j]]:5s}' for j in range(4)))
-    outputs = net(images)
-    _, predicted = torch.max(outputs, 1)
-
-    print('Predicted: ', ' '.join(f'{classes[predicted[j]]:5s}'
-                                  for j in range(4)))
-
-    correct = 0
-    total = 0
-    # since we're not training, we don't need to calculate the gradients for our outputs
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
-            # calculate outputs by running images through the network
-            outputs = net(images)
-            # the class with the highest energy is what we choose as prediction
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print(
-        f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-
-    # prepare to count predictions for each class
-    correct_pred = {classname: 0 for classname in classes}
-    total_pred = {classname: 0 for classname in classes}
-
-    # again no gradients needed
-    with torch.no_grad():
-        for data in testloader:
-            images, labels = data
-            outputs = net(images)
-            _, predictions = torch.max(outputs, 1)
-            # collect the correct predictions for each class
-            for label, prediction in zip(labels, predictions):
-                if label == prediction:
-                    correct_pred[classes[label]] += 1
-                total_pred[classes[label]] += 1
-
-    # print accuracy for each class
-    for classname, correct_count in correct_pred.items():
-        accuracy = 100 * float(correct_count) / total_pred[classname]
-        print(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+    plt.plot(losses)
+    plt.show()
 
 
 if __name__ == '__main__':
