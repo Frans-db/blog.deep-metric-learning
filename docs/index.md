@@ -268,6 +268,24 @@ ping. In 2006 IEEE Computer Society Conference on Computer Vision and Pattern Re
 recognition and clustering. CoRR, abs/1503.03832, 2015.
 
 ## Appendix
+## Static Results
+Contrastive Learning all
+![Contrastive Learning All](./media/contrastive_all.png)
+
+Triplet Learning all
+![Triplet Learning All](./media/triplet.png)
+
+Contrastive Learning 1 5 9
+![Contrastive Learning All](./media/contrastive_1_5_9.png)
+
+Triplet Learning 1 5 9
+![Triplet Learning All](./media/triplet_1_5_9.png)
+
+Contrastive Learning 1 2 5 6 8 9
+![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.png)
+
+Triplet Learning 1 2 5 6 8 9
+![Triplet Learning All](./media/triplet_1_2_5_6_8_9.png)
 ### Main File
 ```python
 import torch
