@@ -231,23 +231,25 @@ I ran several experiments, each with different subsections of the data, to see h
 
 All results are shown as a gif to show the learning progression over time, for static images of the final result check out the appendix.
 
-Contrastive Learning all
-![Contrastive Learning All](./media/contrastive_all.gif)
-
-Triplet Learning all
-![Triplet Learning All](./media/triplet_all.gif)
-
 Contrastive Learning 1 5 9
 ![Contrastive Learning All](./media/contrastive_1_5_9.gif)
 
 Triplet Learning 1 5 9
 ![Triplet Learning All](./media/triplet_1_5_9.gif)
 
+
 Contrastive Learning 1 2 5 6 8 9
 ![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.gif)
 
 Triplet Learning 1 2 5 6 8 9
 ![Triplet Learning All](./media/triplet_1_2_5_6_8_9.gif)
+
+
+Contrastive Learning all
+![Contrastive Learning All](./media/contrastive_all.gif)
+
+Triplet Learning all
+![Triplet Learning All](./media/triplet_all.gif)
 
 ## Conclusion
 
@@ -287,23 +289,25 @@ recognition and clustering. CoRR, abs/1503.03832, 2015.
 
 ## Appendix
 ## Static Results
-Contrastive Learning all
-![Contrastive Learning All](./media/contrastive_all.png)
-
-Triplet Learning all
-![Triplet Learning All](./media/triplet_all.png)
-
 Contrastive Learning 1 5 9
 ![Contrastive Learning All](./media/contrastive_1_5_9.png)
 
 Triplet Learning 1 5 9
 ![Triplet Learning All](./media/triplet_1_5_9.png)
 
+
 Contrastive Learning 1 2 5 6 8 9
 ![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.png)
 
 Triplet Learning 1 2 5 6 8 9
 ![Triplet Learning All](./media/triplet_1_2_5_6_8_9.png)
+
+
+Contrastive Learning all
+![Contrastive Learning All](./media/contrastive_all.png)
+
+Triplet Learning all
+![Triplet Learning All](./media/triplet_all.png)
 ### Main File
 ```python
 import torch
