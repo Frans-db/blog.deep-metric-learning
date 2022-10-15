@@ -39,8 +39,8 @@ def handle_arguments():
                         help='Number of training epochs')
     parser.add_argument('--repeat_frames', type=int, default=3,
                         help='Repeat a frame a number of times to slow down the GIF')
-    parser.add_argument('--axis_limit', type=float, default=3,
-                        help='Set matplotlib axis to avoid the gif jumping around')
+    parser.add_argument('--repeat_last_frame', type=int, default=30,
+                    help='Repeat the last frame a number of times to pause the GIF here')        
     parser.add_argument('--batch_size', type=int,
                         default=16, help='Dataloader batch size')
     parser.add_argument('--num_workers', type=int, default=0,
@@ -94,6 +94,7 @@ def select_samples(dataset: torch.Tensor, labels: torch.Tensor) -> Dataset:
 def main() -> None:
     device = get_device()
     args = handle_arguments()
+    print(f'Starting Experiment [{args.experiment_name}]')
     create_directores(args.results_root, args.experiment_name)
     results_directory = f'{args.results_root}/{args.experiment_name}'
 
@@ -116,14 +117,18 @@ def main() -> None:
     for epoch in range(args.epochs):
         print(f'Epoch [{epoch:2}]')
         for (inputs, labels) in trainloader:
+            # Ensures batch can always be split in 2
+            if args.mode == 'contrastive' and len(inputs) % 2 != 0:
+                inputs = inputs[:-1]
+                labels = labels[:-1]
             inputs, labels = inputs.to(device), labels.to(device)
             # Create an image of the current test embedding
             if iteration % args.test_every == 0:
-                print(f'Iteration [{iteration:4}]')
+                print(f'Iteration [{iteration:5}]')
                 image_path = f'./{results_directory}/{epoch}_{iteration}.png'
                 test_results, test_labels = test(
                     network, testloader, args.dimensionality)
-                scatter(test_results, test_labels, image_path, args.axis_limit)
+                scatter(test_results, test_labels, image_path, f'{args.mode.capitalize()} Embedding - Epoch {epoch:2}, Iteration {iteration:5}')
                 image_paths.append(image_path)
             # Optimize network
             optimizer.zero_grad()
@@ -140,7 +145,7 @@ def main() -> None:
 
             iteration += 1
     # Create gif of all the test images
-    create_gif(image_paths, results_directory, args.repeat_frames)
+    create_gif(image_paths, results_directory, args.repeat_frames, args.repeat_last_frame)
 
 
 def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -153,26 +158,29 @@ def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tup
 
             all_results = torch.cat((all_results, outputs.detach().cpu()))
             all_labels = torch.cat((all_labels, labels.detach().cpu()))
-    return all_results, all_labels
+    max_result, _ = torch.max(all_results, dim=0)
+    min_result, _ = torch.min(all_results, dim=0)
+    return (all_results - min_result) / (max_result - min_result) , all_labels
 
 
-def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str, axis_limit: float) -> None:
+def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str, title: str) -> None:
     for label in torch.unique(labels):
         idx = labels == label
         embeddings = results[idx].transpose(0, 1)
         # Set x and y lim so result gif doesn't bounce around
-        plt.xlim(-axis_limit, axis_limit)
-        plt.ylim(-axis_limit, axis_limit)
+        plt.xlim(0, 1)
+        plt.ylim(0, 1)
+        plt.title(title)
         plt.scatter(embeddings[0], embeddings[1], label=label.item())
     plt.savefig(image_path)
     plt.clf()
 
 
-def create_gif(image_names: list[str], results_directory: str, repeat_frames: int) -> None:
+def create_gif(image_names: list[str], results_directory: str, repeat_frames: int, repeat_last_frame: int) -> None:
     images = []
-    for filename in image_names:
-        for _ in range(repeat_frames):
-            images.append(imageio.imread(filename))
+    for filename in image_names[:-1]:
+        images.extend([imageio.imread(filename)] * repeat_frames)
+    images.extend([imageio.imread(image_names[-1])] * repeat_last_frame)
     imageio.mimsave(f'./{results_directory}/movie.gif', images)
 
 
