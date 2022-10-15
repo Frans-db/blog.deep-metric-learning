@@ -22,10 +22,13 @@ First I will cover the basic idea and notation, then I will cover 2 deep metric 
 
 ## Basics
 The basic idea behind deep metric learning is to reduce the dimensionality of an input in such a way that similar samples will be close together in the output space. If we have neural network $G_W(x)$, where $W$ are the parameters, then the goal for two items of the same class is for the distance
+
 $$
 d(G_W(x_1), d_W(x_2))
 $$
+
 to be small. For two items of dissimilar items we instead want this distance to be large. For this project I'll be using the euclidean distance
+
 $$
 \sum_{i=1}^n (x_i - y_i)^2
 $$
