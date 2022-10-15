@@ -62,7 +62,7 @@ $$
 Combining both losses we get
 
 $$
-L(W, Y) = (Y) (D_W)^2 + (Y - 1) \max(0, m - D_W)^2
+L(W, Y) = \frac{1}{2} (Y) (D_W)^2 + \frac{1}{2} (Y - 1) \max(0, m - D_W)^2
 $$
 
 Where $D_W$ is the distance, and $Y$ is a vector which is 1 for similar pairs, and 0 for dissimilar pairs.
