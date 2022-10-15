@@ -12,7 +12,7 @@ pip install torch torchvision matplotlib imageio
 
 Running:
 ```
-python metric_learnign/main.py
+python metric_learning/main.py
 ```
 
 Optional Arguments (each of these has a default and is not needed)
