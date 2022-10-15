@@ -230,7 +230,9 @@ class LecunConvolutionalNetwork(nn.Module):
 ```
 
 ## Results
-I ran several experiments, each with different subsections of the data, to see how both algorithms perform. The code used to run all these tests can be found in the Appendix at the bottom of the page.
+I ran several experiments, each with different subsections of the data, to see how both algorithms perform. The code used to run all these tests can be found in the Appendix at the bottom of the page. All outputs are normalized to be between 0 and 1.
+
+![Contrastive Learning](./media//contrastive_all.gif)
 
 ## Conclusion
 
@@ -240,6 +242,26 @@ Due to time constraints I was not able to implement everything (in as much detai
 **Miners:** Both miners are quite simple, perhaps by improving them the network can learn from more informative samples and thus get better results.
 
 **Other Methods:** The two deep metric learning methods discussed here are far from the only ones. It could be interesting to implement other methods and compare their results.
+
+**GPU Speedup:** Currently there is an implementation of GPU acceleration, but it is not very good. To create the images data needs to be moved from the GPU to CPU, doing this every batch slows the whole process down quite a lot. 
+
+```python
+def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    with torch.no_grad():
+        all_results = torch.zeros(0, dimensionality)
+        all_labels = torch.zeros(0)
+        for (inputs, labels) in testloader:
+            inputs, labels = inputs.to(get_device()), labels.to(get_device())
+            outputs = network(inputs)
+
+            all_results = torch.cat((all_results, outputs.detach().cpu()))
+            all_labels = torch.cat((all_labels, labels.detach().cpu()))
+    max_result, _ = torch.max(all_results, dim=0)
+    min_result, _ = torch.min(all_results, dim=0)
+    return (all_results - min_result) / (max_result - min_result), all_labels
+```
+
+I think leaving the entire results and labels tensor in GPU memory untill the iteration is done should work because each item in the tensor is only 2 values, but I currently do not have access to a GPU to test this.
 
 ## Citations
 1. R. Hadsell, S. Chopra, and Y. LeCun. Dimensionality reduction by learning an invariant map-

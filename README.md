@@ -1,4 +1,7 @@
 # blog.deep-metric-learning
+
+![Contrastive Learning](./docs/media//contrastive_all.gif)
+
 An exploration into contrastive and triplet deep metric learning methods
 
 This project is an attempt for me to learn more about the field of deep metric learning, and share some of this knowledge through a blog post. The blog post is hosted via github pages and can be found [here](https://frans-db.github.io/blog.deep-metric-learning/).
