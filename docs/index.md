@@ -229,7 +229,25 @@ class LecunConvolutionalNetwork(nn.Module):
 ## Results
 I ran several experiments, each with different subsections of the data, to see how both algorithms perform. The code used to run all these tests can be found in the Appendix at the bottom of the page. All outputs are normalized to be between 0 and 1.
 
-![Contrastive Learning](./media//contrastive_all.gif)
+All results are shown as a gif to show the learning progression over time, for static images of the final result check out the appendix.
+
+Contrastive Learning all
+![Contrastive Learning All](./media/contrastive_all.gif)
+
+Triplet Learning all
+![Triplet Learning All](./media/triplet_all.gif)
+
+Contrastive Learning 1 5 9
+![Contrastive Learning All](./media/contrastive_1_5_9.gif)
+
+Triplet Learning 1 5 9
+![Triplet Learning All](./media/triplet_1_5_9.gif)
+
+Contrastive Learning 1 2 5 6 8 9
+![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.gif)
+
+Triplet Learning 1 2 5 6 8 9
+![Triplet Learning All](./media/triplet_1_2_5_6_8_9.gif)
 
 ## Conclusion
 
@@ -273,7 +291,7 @@ Contrastive Learning all
 ![Contrastive Learning All](./media/contrastive_all.png)
 
 Triplet Learning all
-![Triplet Learning All](./media/triplet.png)
+![Triplet Learning All](./media/triplet_all.png)
 
 Contrastive Learning 1 5 9
 ![Contrastive Learning All](./media/contrastive_1_5_9.png)
