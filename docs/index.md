@@ -101,7 +101,7 @@ class ContrastiveLoss(nn.Module):
 
 ### Contrastive Miner
 
-In most implementations of deep metric learning something called a miner is used to find suitable groups of data to learn from. In the case of contrastive learning we would want a miner that finds pairs of data (both similar and dissimilar) that contain a high amount of information, so similar pairs that are far apart or dissimilar pairs that are close together. To keep things simpel I decided to skip the complicated miner part, and instead made a miner that takes in the current batch as input and pairs data based on their index.
+In most implementations of deep metric learning something called a miner is used to find suitable groups of data to learn from. In the case of contrastive learning we would want a miner that finds pairs of data (both similar and dissimilar) that contain a high amount of information, so similar pairs that are far apart or dissimilar pairs that are close together. To keep things simple I decided to skip the complicated miner part, and instead made a miner that takes in the current batch as input and pairs data based on their index.
 
 This "miner" transforms a list into two lists of equal length, where now each index $i$ corresponds to a sample in the left and right list, so each index $i$ now forms a pair.
 
