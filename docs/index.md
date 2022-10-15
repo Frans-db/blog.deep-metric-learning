@@ -128,6 +128,14 @@ Triplet learning is an improvement on contrastive learning. Instead of comparing
 
 ### Triplet Loss
 
+Triplet loss again consists of two parts, a negative and a positive part. This time however both parts of the loss are calculated for each sample in the batch, this is because each sample is a triplet consisting of (anchor, positive, negative) = $(x_i^a, x_i^p, x_i^n)$.
+
+$$
+\sum_{i=1}^n[d(G_W(x_i^a), G_W(x_i^p)) - d(G_W(x_i^a), G_W(x_i^n)) + m]_+
+$$
+
+Here we again use the margin $m$ to avoid the network output collapsing onto a single point.
+
 ```python
 class TripletLoss(nn.Module):
     """
@@ -151,7 +159,52 @@ class TripletLoss(nn.Module):
 
 ### Triplet Miner
 
+Just like contrastive learning you need a miner for triplet learning as well. Once again I implemented a very simple version of a miner. This one just iterates over all samples and if it find a anchor, positive, and negative, it adds it to the list. I would highly recommend reading [2] for more information about their miner.
+
+```python
+class TripletMiner(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, embeddings: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        i = 0
+        anchors = []
+        positives = []
+        negatives = []
+        while i < len(labels):
+            positive = None
+            negative = None
+
+            j = i + 1
+            while j < len(labels):
+                if labels[j] == labels[i] and positive is None:
+                    positive = j
+                if labels[j] != labels[i] and negative is None:
+                    negative = j
+                if positive is not None and negative is not None:
+                    anchors.append(embeddings[i])
+                    positives.append(embeddings[positive])
+                    negatives.append(embeddings[negative])
+                    break
+                j = j + 1
+            i = i + 1
+
+        triplets = torch.stack([
+            torch.stack(anchors),
+            torch.stack(positives),
+            torch.stack(negatives),
+        ])
+        return triplets, None
+```
+
 ## Network
+
+For the network I followed the example given in [1]. This is a very basic convolutional layer consisting of
+- A convolutional layer with kernel size 6 and 15 out channels
+- A pooling layer with kernel size 3
+- A second convolutional layer with kernel size 9 and 30 out channels
+- A fully connected layer which reduces the output from the previous layer to the output dimensionality
+The activation function, which is applied to every layer but hte last, is the relu function.
 
 ```python
 class LecunConvolutionalNetwork(nn.Module):
