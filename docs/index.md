@@ -38,21 +38,28 @@ class EuclideanDistance(nn.Module):
 
 I'll be following along with [1] for my implementation of contrastive learning.
 
-Contrastive learning works on the premise that points that are similar should be placed close together in the output manifold, and ponints that are different should be placed far apart. It does this by comparing (contrasting) two points against each other, and calculating the loss.
-
-First of all each point $X_i$ is put through the network, 
+Contrastive learning works on the premise that points that are similar should be placed close together in the output manifold, and points that are different should be placed far apart. It does this by comparing (contrasting) two points against each other, and calculating the loss.
 
 ### Contrastive Loss
-The contrastive loss consists of two parts, a similar and a dissimilar part.
+The contrastive loss consists of two parts, a similar and a dissimilar part. The similar part increases when two samples that have the same class are far away from each other.
 
 $$
-
+d(G_W(x_1), G_W(x_2))^2
 $$
 
+The dissimilar part increases when two samples with different classes are closer to each other than some margin $m$. This part is needed because with only the similar loss the output of the network would collapse by embedding all inputs to the same point.
 
 $$
-L(W, Y) = (1 - Y) \frac{1}{2}(D_W)^2 + (Y) \frac{1}{2}(\max(0, m - D_W))^2
+max(0, m - d(G_W(x_1), G_W(x_2)))^2
 $$
+
+Combining both losses we get
+
+$$
+L(W, Y) = (Y) (D_W)^2 + (Y - 1) \max(0, m - D_W)^2
+$$
+
+Where $D_W$ is the distance, and Y is a vector which is 1 for similar pairs, and 0 for dissimilar pairs.
 
 ```python
 class ContrastiveLoss(nn.Module):
