@@ -40,7 +40,7 @@ def handle_arguments():
     parser.add_argument('--repeat_frames', type=int, default=3,
                         help='Repeat a frame a number of times to slow down the GIF')
     parser.add_argument('--repeat_last_frame', type=int, default=30,
-                    help='Repeat the last frame a number of times to pause the GIF here')        
+                        help='Repeat the last frame a number of times to pause the GIF here')
     parser.add_argument('--batch_size', type=int,
                         default=16, help='Dataloader batch size')
     parser.add_argument('--num_workers', type=int, default=0,
@@ -128,7 +128,8 @@ def main() -> None:
                 image_path = f'./{results_directory}/{epoch}_{iteration}.png'
                 test_results, test_labels = test(
                     network, testloader, args.dimensionality)
-                scatter(test_results, test_labels, image_path, f'{args.mode.capitalize()} Embedding - Epoch {epoch:2}, Iteration {iteration:5}')
+                scatter(test_results, test_labels, image_path,
+                        f'{args.mode.capitalize()} Embedding - Epoch {epoch:2}, Iteration {iteration:5}')
                 image_paths.append(image_path)
             # Optimize network
             optimizer.zero_grad()
@@ -145,7 +146,8 @@ def main() -> None:
 
             iteration += 1
     # Create gif of all the test images
-    create_gif(image_paths, results_directory, args.repeat_frames, args.repeat_last_frame)
+    create_gif(image_paths, results_directory,
+               args.repeat_frames, args.repeat_last_frame)
 
 
 def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -160,7 +162,7 @@ def test(network: nn.Module, testloader: DataLoader, dimensionality: int) -> Tup
             all_labels = torch.cat((all_labels, labels.detach().cpu()))
     max_result, _ = torch.max(all_results, dim=0)
     min_result, _ = torch.min(all_results, dim=0)
-    return (all_results - min_result) / (max_result - min_result) , all_labels
+    return (all_results - min_result) / (max_result - min_result), all_labels
 
 
 def scatter(results: torch.Tensor, labels: torch.Tensor, image_path: str, title: str) -> None:
