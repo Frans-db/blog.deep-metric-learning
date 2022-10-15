@@ -231,30 +231,36 @@ I ran several experiments, each with different subsections of the data, to see h
 
 All results are shown as a gif to show the learning progression over time, for static images of the final result check out the appendix.
 
-Contrastive Learning 1 5 9
+*Contrastive Learning 1 5 9*
 ![Contrastive Learning All](./media/contrastive_1_5_9.gif)
 
 
-Triplet Learning 1 5 9
+*Triplet Learning 1 5 9*
 ![Triplet Learning All](./media/triplet_1_5_9.gif)
 
 
-Contrastive Learning 1 2 5 6 8 9
+*Contrastive Learning 1 2 5 6 8 9*
 ![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.gif)
 
 
-Triplet Learning 1 2 5 6 8 9
+*Triplet Learning 1 2 5 6 8 9*
 ![Triplet Learning All](./media/triplet_1_2_5_6_8_9.gif)
 
 
-Contrastive Learning all
+*Contrastive Learning all*
 ![Contrastive Learning All](./media/contrastive_all.gif)
 
 
-Triplet Learning all
+*Triplet Learning all*
 ![Triplet Learning All](./media/triplet_all.gif)
 
+I tested both contrastive learning on different sets of labels. These sets were $[1, 5, 9]$, $[1, 2, 5, 6, 8, 9]$, and all labels ($[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]$).
+
 ## Conclusion
+
+Both methods performed decently well, especially on the datasets with fewer labels. In earlier tests I saw triplet learning perform better than contrastive learning, but in these tests triplet learning did not perform any better than contrastive, and in the case of the labels $[1, 5, 9]$ it seems to perform quite a bit worse.
+
+Overall both methods do show some clear clustering, and when there's fewer labels the distance between the clusters is quite good as well. Perhaps setting a larger margin with more labels could help?
 
 ## Future Work
 Due to time constraints I was not able to implement everything (in as much detail) as I originally wanted. This section will list possible improvements to this project.
@@ -292,27 +298,27 @@ recognition and clustering. CoRR, abs/1503.03832, 2015.
 
 ## Appendix
 ## Static Results
-Contrastive Learning 1 5 9
+*Contrastive Learning 1 5 9*
 ![Contrastive Learning All](./media/contrastive_1_5_9.png)
 
 
-Triplet Learning 1 5 9
+*Triplet Learning 1 5 9*
 ![Triplet Learning All](./media/triplet_1_5_9.png)
 
 
-Contrastive Learning 1 2 5 6 8 9
+*Contrastive Learning 1 2 5 6 8 9*
 ![Contrastive Learning All](./media/contrastive_1_2_5_6_8_9.png)
 
 
-Triplet Learning 1 2 5 6 8 9
+*Triplet Learning 1 2 5 6 8 9*
 ![Triplet Learning All](./media/triplet_1_2_5_6_8_9.png)
 
 
-Contrastive Learning all
+*Contrastive Learning all*
 ![Contrastive Learning All](./media/contrastive_all.png)
 
 
-Triplet Learning all
+*Triplet Learning all*
 ![Triplet Learning All](./media/triplet_all.png)
 ### Main File
 ```python
